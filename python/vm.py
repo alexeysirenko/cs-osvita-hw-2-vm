@@ -38,6 +38,10 @@ def compute(memory):
         STORE: store,
         ADD: lambda m, r, idx: arithmetic_op(m, r, idx, operator.add),
         SUB: lambda m, r, idx: arithmetic_op(m, r, idx, operator.sub),
+        ADDI: lambda m, r, idx: arithmetic_immediate_op(m, r, idx, operator.add),
+        SUBI: lambda m, r, idx: arithmetic_immediate_op(m, r, idx, operator.sub),
+        JUMP: lambda m, _, idx: jump(m, idx),
+        BEQZ: branch_if_equal_to_zero
     }
 
     while True:
@@ -89,4 +93,27 @@ def arithmetic_op(memory, registers, command_idx, op) -> int:
     assert reg1 in [0x01, 0x02] 
     assert reg2 in [0x01, 0x02]
     registers[reg1] = op(registers[reg1], registers[reg2]) & 0xFF
+    return command_idx + CMD_LEN
+
+
+def arithmetic_immediate_op(memory, registers, command_idx, op) -> int:
+    CMD_LEN = 3
+    reg1, value = get_cmd(memory, command_idx + 1), get_cmd(memory, command_idx + 2)
+    assert reg1 in [0x01, 0x02]
+    registers[reg1] = op(registers[reg1], value) & 0xFF
+    return command_idx + CMD_LEN
+
+def jump(memory, command_idx) -> int:
+    jump_to = get_cmd(memory, command_idx + 1)
+    assert MEMORY_SHIFT <= jump_to < len(memory)
+    return jump_to
+
+def branch_if_equal_to_zero(memory, registers, command_idx) -> int:
+    CMD_LEN = 3
+    reg1, offset = get_cmd(memory, command_idx + 1), get_cmd(memory, command_idx + 2)
+    assert reg1 in [0x01, 0x02]
+    if registers[reg1] == 0:
+        jump_to = command_idx + CMD_LEN + offset
+        assert MEMORY_SHIFT <= jump_to < len(memory)
+        return jump_to
     return command_idx + CMD_LEN
