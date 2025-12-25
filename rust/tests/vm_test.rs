@@ -165,6 +165,17 @@ fn test_stretch_goals() {
     }
 }
 
+fn print_data_area(memory: &[u8; 256]) {
+    print!("[");
+    for i in 0..8 {
+        if i > 0 {
+            print!(", ");
+        }
+        print!("{:02x}", memory[i]);
+    }
+    println!("]");
+}
+
 fn run_vm_test(test: &VmTest) {
     let code = assemble(test.asm);
 
@@ -174,7 +185,14 @@ fn run_vm_test(test: &VmTest) {
         memory[1] = case.x;
         memory[2] = case.y;
 
+        println!("[{}] f({}, {})", test.name, case.x, case.y);
+        print!("  before: ");
+        print_data_area(&memory);
+
         compute(&mut memory);
+
+        print!("  after:  ");
+        print_data_area(&memory);
 
         let actual = memory[0];
         assert_eq!(

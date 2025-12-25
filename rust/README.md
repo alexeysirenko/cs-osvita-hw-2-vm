@@ -8,6 +8,6 @@ source ~/.cargo/env
 # Run tests
 
 ```bash
-cargo test
-cargo test -- --include-ignored
+cargo test -- --nocapture --test-threads=1
+cargo test -- --nocapture --test-threads=1 --include-ignored
 ```
